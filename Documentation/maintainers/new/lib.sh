@@ -181,6 +181,32 @@ mark_unreleased() {
 	sed -i -e "/^KDE_UNRELEASED/s/ )/ ${cv}&/" eclass/kde.org.eclass
 }
 
+# @FUNCTION: mask_from_set
+# @USAGE: <set name> <target version> <filename>
+# @DESCRIPTION:
+# Takes sets/<set name>, transforming it a profiles/package.mask/<filename>
+# list of atoms with <target version>.
+mask_from_set() {
+	local set="${1}"
+	local version="${2}"
+	local filename="${3}"
+	local author
+
+	if command -v git &> /dev/null; then
+		author="$(git config --get user.name) <$(git config --get user.email)>"
+	fi
+	[[ -d profiles/package.mask ]] || mkdir profiles/package.mask
+	[[ -f profiles/package.mask/${filename} ]] && rm profiles/package.mask/${filename}
+
+	touch profiles/package.mask/${filename}
+	echo "# ${author} ($(date "+%Y-%m-%d"))" >> profiles/package.mask/${filename}
+	echo "# KDE Release Service ${version} mask" >> profiles/package.mask/${filename}
+	echo "# UNRELEASED" >> profiles/package.mask/${filename}
+	echo "#" >> profiles/package.mask/${filename}
+	get_package_list_from_set ${set} >> profiles/package.mask/${filename}
+	sed -i -e "/^#/!s/^/~/" -e "/^#/!s/$/-${version}/" profiles/package.mask/${filename}
+}
+
 # @FUNCTION: mask_from_live_set
 # @USAGE: <base set name> <target version> <filename>
 # @DESCRIPTION:
