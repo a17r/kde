@@ -115,6 +115,25 @@ if [[ ${CATEGORY} == kde-apps ]]; then
 	KDE_GEAR=true
 fi
 
+# @ECLASS-VARIABLE: KDE_ORG_SIG
+# @INTERNAL
+# @DESCRIPTION:
+# By default, this is set to "false"; for supported packages (KDE Frameworks,
+# Plasma and Gear) it is automatically set to "true".
+KDE_ORG_SIG="false"
+if [[ ${EAPI} != 7 && ${KDE_BUILD_TYPE} == release ]]; then
+	if [[ ${KDE_GEAR} == true || ${CATEGORY} == kde-plasma || ${CATEGORY} == kde-frameworks ]]; then
+		KDE_ORG_SIG="true"
+		inherit verify-sig
+		VERIFY_SIG_OPENPGP_KEY_PATH="${BROOT}/usr/share/openpgp-keys/kde.org.asc"
+		BDEPEND+=" verify-sig? ( app-crypt/openpgp-keys-kde )"
+	fi
+fi
+
+if [[ ${KDE_BUILD_TYPE} == live ]]; then
+	inherit git-r3
+fi
+
 # @ECLASS-VARIABLE: KDE_SELINUX_MODULE
 # @PRE_INHERIT
 # @DESCRIPTION:
@@ -242,6 +261,10 @@ _kde.org_calculate_src_uri() {
 		SRC_URI="${_src_uri}${KDE_ORG_NAME}-${PV}.tar.xz"
 	fi
 
+	if [[ ${KDE_ORG_SIG} == true ]]; then
+		SRC_URI+=" ${_src_uri}${KDE_ORG_NAME}-${PV}.tar.xz.sig"
+	fi
+
 	if _kde.org_is_unreleased ; then
 		RESTRICT+=" fetch"
 	fi
@@ -348,6 +371,13 @@ kde.org_src_unpack() {
 	debug-print-function ${FUNCNAME} "$@"
 
 	case ${KDE_BUILD_TYPE} in
+		release)
+			if [[ ${KDE_ORG_SIG} == true ]]; then
+				verify-sig_src_unpack
+			else
+				default
+			fi
+			;;
 		live) git-r3_src_unpack ;&
 		*) default ;;
 	esac
