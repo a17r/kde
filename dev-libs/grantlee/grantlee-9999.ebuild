@@ -3,58 +3,38 @@
 
 EAPI=8
 
+ECM_TEST="true"
+KFMIN=5.82.0
+QTMIN=5.15.2
 VIRTUALX_REQUIRED="test"
-inherit cmake virtualx git-r3
+inherit ecm git-r3 virtualx
 
 DESCRIPTION="C++ string template engine based on the Django template system"
-HOMEPAGE="https://github.com/steveire/grantlee"
-EGIT_REPO_URI=( "https://github.com/steveire/${PN}" )
+HOMEPAGE="https://github.com/steveire/grantlee
+https://gitlab.com/kossebau/grantlee"
+EGIT_REPO_URI=( "https://gitlab.com/kossebau/${PN}" )
 
 LICENSE="LGPL-2.1+"
 SLOT="5"
 KEYWORDS=""
-IUSE="debug doc test"
+IUSE="doc"
 
+RDEPEND="
+	>=dev-qt/qtdeclarative-${QTMIN}:5
+	>=dev-qt/qtgui-${QTMIN}:5
+"
+DEPEND="${RDEPEND}"
 BDEPEND="
 	doc? ( app-doc/doxygen[dot] )
-	test? ( dev-qt/linguist-tools:5 )
+	test? ( >=dev-qt/linguist-tools-${QTMIN}:5 )
 "
-RDEPEND="
-	dev-qt/qtcore:5
-	dev-qt/qtdeclarative:5
-	dev-qt/qtgui:5
-"
-DEPEND="${RDEPEND}
-	test? ( dev-qt/qttest:5 )
-"
-
-RESTRICT="!test? ( test )"
-
-PATCHES=(
-	"${FILESDIR}/${PN}-0.3.0-nonfatal-warnings.patch"
-	"${FILESDIR}/${P}-slot.patch"
-)
-
-src_configure() {
-	local mycmakeargs=(
-		-DBUILD_TESTS=$(usex test)
-	)
-
-	cmake_src_configure
-}
 
 src_compile() {
-	cmake_src_compile
-
-	use doc && cmake_src_compile docs
-}
-
-src_test() {
-	virtx cmake_src_test
+	ecm_src_compile
+	use doc && cmake_build docs
 }
 
 src_install() {
-	use doc && local HTML_DOCS=("${BUILD_DIR}/apidox/")
-
-	cmake_src_install
+	use doc && local HTML_DOCS=( "${BUILD_DIR}/apidox/" )
+	ecm_src_install
 }
