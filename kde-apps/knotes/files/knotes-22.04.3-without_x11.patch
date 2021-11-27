@@ -1,0 +1,43 @@
+From a2a526a1b312fa35666f4cc00c6d1b5e7e652966 Mon Sep 17 00:00:00 2001
+From: Andreas Sturmlechner <asturm@gentoo.org>
+Date: Sat, 27 Nov 2021 14:20:50 +0100
+Subject: [PATCH] Add CMake option to build WITHOUT_X11
+
+Signed-off-by: Andreas Sturmlechner <asturm@gentoo.org>
+---
+ CMakeLists.txt | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6ea5a12c..daa24034 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -62,7 +62,6 @@ set(AKONADI_SEARCH_VERSION "5.21.40")
+ 
+ set(QT_REQUIRED_VERSION "5.15.2")
+ find_package(Qt${QT_MAJOR_VERSION} ${QT_REQUIRED_VERSION} CONFIG REQUIRED DBus Network PrintSupport Test Widgets Xml)
+-find_package(Qt${QT_MAJOR_VERSION}X11Extras NO_MODULE)
+ # Find KF5 package
+ find_package(KF5Completion ${KF5_MIN_VERSION} REQUIRED)
+ find_package(KF5Config ${KF5_MIN_VERSION} REQUIRED)
+@@ -106,11 +105,14 @@ find_package(KF5AkonadiSearch ${AKONADI_SEARCH_VERSION} CONFIG REQUIRED)
+ set_package_properties(KF5AkonadiSearch PROPERTIES DESCRIPTION "The Akonadi Search libraries" URL "ttps://invent.kde.org/pim/akonadi-search" TYPE REQUIRED PURPOSE "Provides search capabilities in pim apps and Akonadi")
+ 
+ if (NOT APPLE)
+-    find_package(X11)
++    option(WITHOUT_X11 "Build without X11 integration (skips finding X11)" OFF)
++    if (NOT WITHOUT_X11)
++        find_package(X11)
++        find_package(Qt${QT_MAJOR_VERSION}X11Extras NO_MODULE)
++        set(KDEPIM_HAVE_X11 ${X11_FOUND})
++    endif()
+ endif()
+ 
+-set(KDEPIM_HAVE_X11 ${X11_FOUND})
+-
+ set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
+ 
+ include_directories(${knotes_SOURCE_DIR} ${knotes_BINARY_DIR})
+-- 
+2.35.1
+
