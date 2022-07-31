@@ -1,0 +1,45 @@
+From a1b7c08e3ef1a90d2db934fcfdb80463fcf6252e Mon Sep 17 00:00:00 2001
+From: Andreas Sturmlechner <asturm@gentoo.org>
+Date: Sun, 31 Jul 2022 16:46:13 +0200
+Subject: [PATCH] Add CMake option to build WITHOUT_X11
+
+We want to be able to build without X11 support even if some of the used
+libraries may not work w/o X11 themselves yet or need to be built with
+X11 support for other reverse dependencies.
+
+KDEPIM_HAVE_X11 already exists and is set automagically so far, but using
+-DCMAKE_DISABLE_FIND_PACKAGE_X11 will break if any dependencies list X11
+as required in their cmake config.
+
+Introducing this option means there is no behavior change by default,
+cmake will just skip finding X11 or adding unwanted features if the
+option is enabled.
+
+Signed-off-by: Andreas Sturmlechner <asturm@gentoo.org>
+---
+ CMakeLists.txt | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 297aae8ff..7c036df07 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -123,10 +123,13 @@ find_package(KF5CalendarSupport ${CALENDARSUPPORT_LIB_VERSION} CONFIG REQUIRED)
+ find_package(KF5EventViews ${EVENTVIEW_LIB_VERSION} CONFIG REQUIRED)
+ 
+ if(NOT APPLE)
+-  find_package(X11)
++    option(WITHOUT_X11 "Build without X11 integration (skips finding X11)" OFF)
++    if(NOT WITHOUT_X11)
++        find_package(X11)
++        set(KDEPIM_HAVE_X11 ${X11_FOUND})
++    endif()
+ endif()
+ 
+-set(KDEPIM_HAVE_X11 ${X11_FOUND})
+ configure_file(config-korganizer.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-korganizer.h)
+ include_directories(${korganizer_SOURCE_DIR} ${korganizer_BINARY_DIR})
+ configure_file(korganizer-version.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/korganizer-version.h @ONLY)
+-- 
+2.35.1
+

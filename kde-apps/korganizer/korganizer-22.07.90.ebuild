@@ -60,7 +60,7 @@ COMMON_DEPEND="
 	>=kde-frameworks/kparts-${KFMIN}:5
 	>=kde-frameworks/kservice-${KFMIN}:5
 	>=kde-frameworks/kwidgetsaddons-${KFMIN}:5
-	>=kde-frameworks/kwindowsystem-${KFMIN}:5
+	>=kde-frameworks/kwindowsystem-${KFMIN}:5[X?]
 	>=kde-frameworks/kxmlgui-${KFMIN}:5
 	telemetry? ( >=dev-libs/kuserfeedback-1.2.0:5 )
 	X? (
@@ -80,10 +80,12 @@ BDEPEND="
 	test? ( >=kde-apps/akonadi-${PVCUT}:5[tools] )
 "
 
+PATCHES=( "${FILESDIR}/${PN}-22.04.3-without_x11.patch" )
+
 src_configure() {
 	local mycmakeargs=(
 		$(cmake_use_find_package telemetry KUserFeedback)
-		$(cmake_use_find_package X X11)
+		-DWITHOUT_X11=$(usex !X)
 	)
 
 	ecm_src_configure
