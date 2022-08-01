@@ -58,13 +58,16 @@ RDEPEND="${COMMON_DEPEND}
 	!<kde-plasma/plasma-workspace-5.18.80:5
 "
 
-PATCHES=( "${FILESDIR}/${PN}-5.22.80-no-detailed-mem-message.patch" )
+PATCHES=(
+	"${FILESDIR}/${PN}-5.22.80-no-detailed-mem-message.patch"
+	"${FILESDIR}/${PN}-5.25.4-with_x11.patch"
+)
 
 src_configure() {
 	local mycmakeargs=(
 		$(cmake_use_find_package webengine Qt5WebChannel)
 		$(cmake_use_find_package webengine Qt5WebEngineWidgets)
-		$(cmake_use_find_package X X11)
+		-DWITH_X11=$(usex X)
 	)
 
 	ecm_src_configure
