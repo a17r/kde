@@ -1,0 +1,224 @@
+From 35ed6bee934cc60c57883ca38726d0c2557f923a Mon Sep 17 00:00:00 2001
+From: Andreas Sturmlechner <asturm@gentoo.org>
+Date: Wed, 2 Aug 2023 22:24:00 +0200
+Subject: [PATCH] [WIP] Try to make KF5Activities optional
+
+Signed-off-by: Andreas Sturmlechner <asturm@gentoo.org>
+---
+ CMakeLists.txt                                    |  9 ++++++++-
+ src/plasma/config-plasma.h.cmake                  |  1 +
+ src/scriptengines/qml/CMakeLists.txt              |  4 +++-
+ .../qml/plasmoid/containmentinterface.cpp         | 15 ++++++++++-----
+ .../qml/plasmoid/containmentinterface.h           | 15 +++++++++------
+ 5 files changed, 31 insertions(+), 13 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 94c7daf41..41329258c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -49,7 +49,6 @@ endif()
+ 
+ find_package(KF5 ${KF_DEP_VERSION} REQUIRED
+     COMPONENTS
+-        Activities
+         Archive
+         Config
+         ConfigWidgets
+@@ -67,6 +66,7 @@ find_package(KF5 ${KF_DEP_VERSION} REQUIRED
+         Package
+         Kirigami2
+     OPTIONAL_COMPONENTS
++        Activities
+         Wayland
+         DocTools
+ )
+@@ -75,6 +75,13 @@ if(NOT EXCLUDE_DEPRECATED_BEFORE_AND_AT STREQUAL "CURRENT" AND
+     find_package(KF5 ${KF_DEP_VERSION} REQUIRED COMPONENTS Service)
+ endif()
+ 
++set_package_properties(KF5Activities PROPERTIES DESCRIPTION "Required for activities support (optional)"
++                       TYPE OPTIONAL
++                      )
++if(KF5Activities_FOUND)
++  set(HAVE_ACTIVITIES 1)
++endif()
++
+ set_package_properties(KF5Wayland PROPERTIES DESCRIPTION "Integration with the Wayland compositor"
+                        TYPE OPTIONAL
+                       )
+diff --git a/src/plasma/config-plasma.h.cmake b/src/plasma/config-plasma.h.cmake
+index f46bffe00..09726df97 100644
+--- a/src/plasma/config-plasma.h.cmake
++++ b/src/plasma/config-plasma.h.cmake
+@@ -4,5 +4,6 @@
+ #cmakedefine01 HAVE_GLX
+ #cmakedefine01 HAVE_EGL
+ #cmakedefine01 HAVE_KWAYLAND
++#cmakedefine01 HAVE_ACTIVITIES
+ 
+ #define PLASMA_RELATIVE_DATA_INSTALL_DIR "@PLASMA_RELATIVE_DATA_INSTALL_DIR@"
+diff --git a/src/scriptengines/qml/CMakeLists.txt b/src/scriptengines/qml/CMakeLists.txt
+index 1fc0dd13e..76710f141 100644
+--- a/src/scriptengines/qml/CMakeLists.txt
++++ b/src/scriptengines/qml/CMakeLists.txt
+@@ -21,7 +21,6 @@ set_target_properties(plasma_appletscript_declarative PROPERTIES PREFIX "")
+ target_link_libraries(plasma_appletscript_declarative
+     Qt${QT_MAJOR_VERSION}::Quick
+     Qt${QT_MAJOR_VERSION}::Qml
+-    KF5::Activities
+     KF5::ConfigQml
+     KF5::KIOCore
+     KF5::KIOWidgets
+@@ -33,6 +32,9 @@ target_link_libraries(plasma_appletscript_declarative
+     KF5::Package
+     KF5::Notifications
+ )
++if (HAVE_ACTIVITIES)
++    target_link_libraries(plasma_appletscript_declarative KF5::Activities)
++endif()
+ if (QT_MAJOR_VERSION EQUAL "6")
+     target_link_libraries(plasma_appletscript_declarative KF5::ConfigQml)
+ endif()
+diff --git a/src/scriptengines/qml/plasmoid/containmentinterface.cpp b/src/scriptengines/qml/plasmoid/containmentinterface.cpp
+index dbaf22fb6..575061547 100644
+--- a/src/scriptengines/qml/plasmoid/containmentinterface.cpp
++++ b/src/scriptengines/qml/plasmoid/containmentinterface.cpp
+@@ -40,14 +40,18 @@
+ #include <KPackage/Package>
+ #include <KPackage/PackageLoader>
+ 
++#if HAVE_ACTIVITIES
+ #include <kactivities/info.h>
++#endif
+ 
+ #include <packageurlinterceptor.h>
+ 
+ ContainmentInterface::ContainmentInterface(DeclarativeAppletScript *parent, const QVariantList &args)
+     : AppletInterface(parent, args)
+     , m_wallpaperInterface(nullptr)
++#if HAVE_ACTIVITIES
+     , m_activityInfo(nullptr)
++#endif
+     , m_wheelDelta(0)
+ {
+     m_containment = static_cast<Plasma::Containment *>(appletScript()->applet()->containment());
+@@ -69,11 +73,11 @@ void ContainmentInterface::init()
+     if (qmlObject()->rootObject()) {
+         return;
+     }
+-
++#if HAVE_ACTIVITIES
+     m_activityInfo = new KActivities::Info(m_containment->activity(), this);
+     connect(m_activityInfo, &KActivities::Info::nameChanged, this, &ContainmentInterface::activityNameChanged);
+     Q_EMIT activityNameChanged();
+-
++#endif
+     AppletInterface::init();
+ 
+     // Create the ToolBox
+@@ -129,7 +133,7 @@ void ContainmentInterface::init()
+         QQmlProperty prop(qmlObject()->rootObject(), QStringLiteral("anchors.fill"));
+         prop.write(expr.evaluate());
+     }
+-
++#if HAVE_ACTIVITIES
+     connect(m_containment.data(), &Plasma::Containment::activityChanged, this, &ContainmentInterface::activityChanged);
+     connect(m_containment.data(), &Plasma::Containment::activityChanged, this, [=]() {
+         delete m_activityInfo;
+@@ -137,6 +141,7 @@ void ContainmentInterface::init()
+         connect(m_activityInfo, &KActivities::Info::nameChanged, this, &ContainmentInterface::activityNameChanged);
+         Q_EMIT activityNameChanged();
+     });
++#endif
+     connect(m_containment.data(), &Plasma::Containment::wallpaperChanged, this, &ContainmentInterface::loadWallpaper);
+     connect(m_containment.data(), &Plasma::Containment::containmentTypeChanged, this, &ContainmentInterface::containmentTypeChanged);
+ 
+@@ -820,7 +825,7 @@ void ContainmentInterface::loadWallpaper()
+ 
+     Q_EMIT wallpaperInterfaceChanged();
+ }
+-
++#if HAVE_ACTIVITIES
+ QString ContainmentInterface::activity() const
+ {
+     return m_containment->activity();
+@@ -833,7 +838,7 @@ QString ContainmentInterface::activityName() const
+     }
+     return m_activityInfo->name();
+ }
+-
++#endif
+ QList<QObject *> ContainmentInterface::actions() const
+ {
+     // FIXME: giving directly a QList<QAction*> crashes
+diff --git a/src/scriptengines/qml/plasmoid/containmentinterface.h b/src/scriptengines/qml/plasmoid/containmentinterface.h
+index 86c35fff2..ffa9b9669 100644
+--- a/src/scriptengines/qml/plasmoid/containmentinterface.h
++++ b/src/scriptengines/qml/plasmoid/containmentinterface.h
+@@ -13,6 +13,7 @@
+ #include <Plasma/Containment>
+ 
+ #include "appletinterface.h"
++#include "config-plasma.h"
+ 
+ class WallpaperInterface;
+ class DropMenu;
+@@ -23,12 +24,12 @@ namespace KIO
+ class Job;
+ class DropJob;
+ }
+-
++#if HAVE_ACTIVITIES
+ namespace KActivities
+ {
+ class Info;
+ }
+-
++#endif
+ /**
+  * @class ContainmentInterface
+  *
+@@ -50,7 +51,7 @@ class ContainmentInterface : public AppletInterface
+      * Type of this containment TODO: notify
+      */
+     Q_PROPERTY(Plasma::Types::ContainmentType containmentType READ containmentType WRITE setContainmentType NOTIFY containmentTypeChanged)
+-
++#if HAVE_ACTIVITIES
+     /**
+      * Activity name of this containment
+      */
+@@ -60,7 +61,7 @@ class ContainmentInterface : public AppletInterface
+      * Activity name of this containment
+      */
+     Q_PROPERTY(QString activityName READ activityName NOTIFY activityNameChanged)
+-
++#endif
+     /**
+      * Actions associated to this containment or corona
+      */
+@@ -99,10 +100,10 @@ public:
+ 
+     Plasma::Types::ContainmentType containmentType() const;
+     void setContainmentType(Plasma::Types::ContainmentType type);
+-
++#if HAVE_ACTIVITIES
+     QString activity() const;
+     QString activityName() const;
+-
++#endif
+     QList<QObject *> actions() const;
+ 
+     void setContainmentDisplayHints(Plasma::Types::ContainmentDisplayHints hints);
+@@ -224,7 +225,9 @@ private:
+ 
+     WallpaperInterface *m_wallpaperInterface;
+     QList<QObject *> m_appletInterfaces;
++#if HAVE_ACTIVITIES
+     KActivities::Info *m_activityInfo;
++#endif
+     QPointer<Plasma::Containment> m_containment;
+     QPointer<QMenu> m_contextMenu;
+     QPointer<DropMenu> m_dropMenu;
+-- 
+2.41.0
+
