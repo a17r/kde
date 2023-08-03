@@ -1,0 +1,32 @@
+From 6ea5ae9c0f37daedbf1573cf0733ced19745710e Mon Sep 17 00:00:00 2001
+From: Xaver Hugl <xaver.hugl@gmail.com>
+Date: Wed, 2 Aug 2023 15:21:48 +0200
+Subject: [PATCH] input: use modifiersRelevantForGlobalShortcuts for tabbox
+ events
+
+This way, caps lock doesn't get in the way
+
+BUG: 453918
+
+
+(cherry picked from commit 2ea707585f9f6774c45fbb4cbd21dac8b0cd3844)
+---
+ src/input.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/input.cpp b/src/input.cpp
+index d3d32020580..9c74ca56ef7 100644
+--- a/src/input.cpp
++++ b/src/input.cpp
+@@ -1609,7 +1609,7 @@ public:
+         passToWaylandServer(event);
+ 
+         if (event->type() == QEvent::KeyPress) {
+-            workspace()->tabbox()->keyPress(event->modifiers() | event->key());
++            workspace()->tabbox()->keyPress(event->modifiersRelevantForGlobalShortcuts() | event->key());
+         } else if (static_cast<KeyEvent *>(event)->modifiersRelevantForGlobalShortcuts() == Qt::NoModifier) {
+             workspace()->tabbox()->modifiersReleased();
+         }
+-- 
+GitLab
+

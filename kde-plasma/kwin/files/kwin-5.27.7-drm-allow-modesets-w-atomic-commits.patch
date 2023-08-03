@@ -1,0 +1,38 @@
+From c580f8ed516c6c93d1e0a91cd96837744badd25e Mon Sep 17 00:00:00 2001
+From: Xaver Hugl <xaver.hugl@gmail.com>
+Date: Wed, 2 Aug 2023 11:45:07 +0200
+Subject: [PATCH] backends/drm: allow modesets with atomic tests if a modeset
+ is already pending
+
+Otherwise the tests will always fail
+
+BUG: 461657
+(cherry picked from commit befb50ebece843e6223d59577a9e1644704ba6c1)
+---
+ src/backends/drm/drm_pipeline.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/backends/drm/drm_pipeline.cpp b/src/backends/drm/drm_pipeline.cpp
+index d4a99f975b8..e0e0b2f0195 100644
+--- a/src/backends/drm/drm_pipeline.cpp
++++ b/src/backends/drm/drm_pipeline.cpp
+@@ -96,6 +96,16 @@ DrmPipeline::Error DrmPipeline::commitPipelines(const QVector<DrmPipeline *> &pi
+ 
+ DrmPipeline::Error DrmPipeline::commitPipelinesAtomic(const QVector<DrmPipeline *> &pipelines, CommitMode mode, const QVector<DrmObject *> &unusedObjects)
+ {
++    if (mode == CommitMode::Test) {
++        // if there's a modeset pending, the tests on top of that state
++        // also have to allow modesets or they'll always fail
++        const bool wantsModeset = std::any_of(pipelines.begin(), pipelines.end(), [](DrmPipeline *pipeline) {
++            return pipeline->needsModeset();
++        });
++        if (wantsModeset) {
++            mode = CommitMode::TestAllowModeset;
++        }
++    }
+     const auto &failed = [&pipelines, &unusedObjects]() {
+         for (const auto &pipeline : pipelines) {
+             pipeline->printDebugInfo();
+-- 
+GitLab
+

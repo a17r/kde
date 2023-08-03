@@ -1,0 +1,31 @@
+From 59307e2678c194d61ba70130039a856490c4de67 Mon Sep 17 00:00:00 2001
+From: Xaver Hugl <xaver.hugl@gmail.com>
+Date: Wed, 2 Aug 2023 17:34:16 +0200
+Subject: [PATCH] internalwindow: don't crash on pointer leave when m_handle is
+ nullptr
+
+BUG: 472922
+
+
+(cherry picked from commit be6be22bae6a978514c535a6585c5b848157895f)
+---
+ src/internalwindow.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/internalwindow.cpp b/src/internalwindow.cpp
+index 3049a938908..521fe3179a5 100644
+--- a/src/internalwindow.cpp
++++ b/src/internalwindow.cpp
+@@ -100,6 +100,9 @@ void InternalWindow::pointerEnterEvent(const QPointF &globalPos)
+ 
+ void InternalWindow::pointerLeaveEvent()
+ {
++    if (!m_handle) {
++        return;
++    }
+     Window::pointerLeaveEvent();
+ 
+     QEvent event(QEvent::Leave);
+-- 
+GitLab
+

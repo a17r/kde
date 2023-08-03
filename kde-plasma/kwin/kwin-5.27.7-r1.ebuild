@@ -102,6 +102,12 @@ BDEPEND="
 "
 PDEPEND=">=kde-plasma/kde-cli-tools-${PVCUT}:5"
 
+PATCHES=(
+	"${FILESDIR}/${P}-input-use-modifiersRelevantForGlobalShortcuts.patch" # KDE-bug 453918
+	"${FILESDIR}/${P}-drm-allow-modesets-w-atomic-commits.patch" # KDE-bug 461657
+	"${FILESDIR}/${P}-internalwindow-dont-crash-when-m_handle-is-nullptr.patch" # KDE-bug 472922
+)
+
 src_prepare() {
 	ecm_src_prepare
 	use multimedia || eapply "${FILESDIR}/${PN}-5.26.80-gstreamer-optional.patch"
