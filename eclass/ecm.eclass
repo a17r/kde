@@ -499,18 +499,30 @@ ecm_punt_po_install() {
 # @FUNCTION: ecm_pkg_pretend
 # @DESCRIPTION:
 # Checks if the active compiler meets the minimum version requirements.
-# phase function is only exported if KDE_GCC_MINIMAL is defined.
+# Phase function is only exported if KFMIN is <=6.8.0 and KDE_GCC_MINIMAL
+# is defined.
 ecm_pkg_pretend() {
 	debug-print-function ${FUNCNAME} "$@"
-	_ecm_check_gcc_version
+	if ver_test ${KFMIN} -ge 6.7.0; then
+		eqawarn "QA notice: ${FUNCNAME} is deprecated for ecm.eclass."
+		eqawarn "It will no longer be exported with KFMIN >=6.8.0."
+	else
+		_ecm_check_gcc_version
+	fi
 }
 
 # @FUNCTION: ecm_pkg_setup
 # @DESCRIPTION:
 # Checks if the active compiler meets the minimum version requirements.
+# Phase function is only exported if KFMIN is <=6.8.0.
 ecm_pkg_setup() {
 	debug-print-function ${FUNCNAME} "$@"
-	_ecm_check_gcc_version
+	if ver_test ${KFMIN} -ge 6.7.0; then
+		eqawarn "QA notice: ${FUNCNAME} is deprecated for ecm.eclass."
+		eqawarn "It will no longer be exported with KFMIN >=6.8.0."
+	else
+		_ecm_check_gcc_version
+	fi
 }
 
 # @FUNCTION: ecm_src_prepare
@@ -798,8 +810,11 @@ ecm_pkg_postrm() {
 
 fi
 
-if [[ -v ${KDE_GCC_MINIMAL} ]]; then
-	EXPORT_FUNCTIONS pkg_pretend
+if ver_test ${KFMIN} -lt 6.8.0; then
+	EXPORT_FUNCTIONS pkg_setup
+	if [[ -v ${KDE_GCC_MINIMAL} ]]; then
+		EXPORT_FUNCTIONS pkg_pretend
+	fi
 fi
 
-EXPORT_FUNCTIONS pkg_setup src_prepare src_configure src_test src_install pkg_preinst pkg_postinst pkg_postrm
+EXPORT_FUNCTIONS src_prepare src_configure src_test src_install pkg_preinst pkg_postinst pkg_postrm
