@@ -4,7 +4,7 @@
 EAPI=8
 
 ECM_DESIGNERPLUGIN="true"
-ECM_QTHELP="true"
+ECM_QTHELP="false" # TODO: Port to ECMGenerateQDoc
 ECM_TEST="forceoptional"
 KFMIN=6.22.0
 QTMIN=6.10.1
