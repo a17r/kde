@@ -17,7 +17,7 @@ HOMEPAGE="https://community.kde.org/KDE_PIM/akonadi"
 LICENSE="LGPL-2.1+"
 SLOT="6/$(ver_cut 1-2)"
 KEYWORDS=""
-IUSE="tools +webengine xml"
+IUSE="tools xml"
 
 REQUIRED_USE="test? ( tools )"
 
@@ -39,10 +39,6 @@ COMMON_DEPEND="
 	>=kde-frameworks/kwidgetsaddons-${KFMIN}:6
 	>=kde-frameworks/kwindowsystem-${KFMIN}:6
 	>=kde-frameworks/kxmlgui-${KFMIN}:6
-	webengine? (
-		kde-apps/kaccounts-integration:6
-		>=net-libs/accounts-qt-1.17[qt6(+)]
-	)
 	xml? ( dev-libs/libxml2:= )
 "
 DEPEND="${COMMON_DEPEND}
@@ -57,8 +53,6 @@ RDEPEND="${COMMON_DEPEND}
 src_configure() {
 	local mycmakeargs=(
 		-DBUILD_TOOLS=$(usex tools)
-		$(cmake_use_find_package webengine AccountsQt6)
-		$(cmake_use_find_package webengine KAccounts6)
 		$(cmake_use_find_package xml LibXml2)
 	)
 
