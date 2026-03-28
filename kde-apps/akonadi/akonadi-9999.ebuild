@@ -37,7 +37,6 @@ COMMON_DEPEND="
 	>=kde-frameworks/kiconthemes-${KFMIN}:6
 	>=kde-frameworks/kitemmodels-${KFMIN}:6
 	>=kde-frameworks/kwidgetsaddons-${KFMIN}:6
-	>=kde-frameworks/kwindowsystem-${KFMIN}:6
 	>=kde-frameworks/kxmlgui-${KFMIN}:6
 	xml? ( dev-libs/libxml2:= )
 "
