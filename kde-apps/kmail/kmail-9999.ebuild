@@ -24,9 +24,9 @@ RESTRICT="test" # bug 616878
 # kde-frameworks/kwindowsystem[X]: Unconditional use of KX11Extras
 COMMON_DEPEND="
 	dev-cpp/gpgmepp:=
-	dev-libs/qgpgme:=
 	>=dev-libs/ktextaddons-2.0.1:6[speech?]
-	>=dev-libs/libgpg-error-1.36
+	dev-libs/libgpg-error
+	dev-libs/qgpgme:=
 	>=dev-libs/qtkeychain-0.15.0:=
 	>=dev-qt/qtbase-${QTMIN}:6[dbus,gui,network,widgets]
 	>=dev-qt/qtwebengine-${QTMIN}:6[widgets]
