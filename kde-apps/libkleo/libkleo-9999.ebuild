@@ -17,9 +17,9 @@ KEYWORDS=""
 IUSE=""
 
 RDEPEND="
-	dev-cpp/gpgmepp:=
-	dev-libs/qgpgme:=
-	>=dev-libs/libgpg-error-1.36
+	>=dev-cpp/gpgmepp-2:=
+	dev-libs/libgpg-error
+	>=dev-libs/qgpgme-2:=
 	>=dev-qt/qtbase-${QTMIN}:6[gui,widgets]
 	>=kde-frameworks/kcodecs-${KFMIN}:6
 	>=kde-frameworks/kcolorscheme-${KFMIN}:6
