@@ -17,7 +17,7 @@ KEYWORDS="~amd64 ~arm64 ~loong ~ppc64 ~x86"
 IUSE=""
 
 # slot op: Uses Qt6WaylandClientPrivate
-COMMON_DEPEND="
+RDEPEND="
 	dev-libs/kirigami-addons:6
 	dev-libs/wayland
 	>=dev-qt/qtbase-${QTMIN}:6=[gui,network,wayland,widgets]
@@ -37,12 +37,9 @@ COMMON_DEPEND="
 	>=kde-frameworks/kwindowsystem-${KFMIN}:6[wayland]
 	kde-plasma/libplasma:6=
 "
-DEPEND="${COMMON_DEPEND}
+DEPEND="${RDEPEND}
 	>=dev-libs/plasma-wayland-protocols-1.8
 	>=dev-libs/wayland-protocols-1.21
-"
-RDEPEND="${COMMON_DEPEND}
-	>=dev-qt/qt5compat-${QTMIN}:6[qml]
 "
 BDEPEND="
 	>=dev-qt/qtbase-${QTMIN}:6[wayland]
