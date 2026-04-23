@@ -38,10 +38,7 @@ RDEPEND="${DEPEND}
 	=kde-frameworks/kitemmodels-${KDE_CATV}*:6
 	=kde-frameworks/prison-${KDE_CATV}*:6[qml]
 	bluetooth? ( =kde-frameworks/bluez-qt-${KDE_CATV}*:6 )
-	webengine? (
-		!kde-frameworks/purpose-kaccounts-services
-		>=net-libs/accounts-qml-0.7_p20231028[qt6(+)]
-	)
+	webengine? ( !kde-frameworks/purpose-kaccounts-services )
 "
 BDEPEND="
 	webengine? (
